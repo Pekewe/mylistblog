@@ -185,14 +185,14 @@ module.exports = {
 
     // 默认站点设置
     runSql("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", ['site_name', '发布清单总站']);
-    runSql("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", ['site_intro', '这是我的发布清单总站，记录了我发布的所有清单。']);
+    runSql("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", ['site_intro', '回忆驱动的站点']);
 
     // 默认分类
     runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['音樂']);
-    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['動畫']);
-    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['遊戲']);
-    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['書籍']);
-    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['電影']);
+    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['同人音樂']);
+    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['廣播劇']);
+    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['影片']);
+    runSql("INSERT OR IGNORE INTO categories (name) VALUES (?)", ['修正']);
 
     // 示例清单1：音樂
     runSql("INSERT INTO lists (title, product_code, category, author, status, created_at) VALUES (?,?,?,?,?,?)",
@@ -203,35 +203,16 @@ module.exports = {
     runSql("INSERT INTO list_links (list_id, title, url) VALUES (?,?,?)", [listId, '相关网站', 'http://www.amazon.co.jp/exec/obidos/ASIN/B000DZJLBG/503-0911234-8979161']);
     runSql("INSERT INTO list_links (list_id, title, url) VALUES (?,?,?)", [listId, '流量资讯', 'http://www.amazon.co.jp/exec/obidos/ASIN/B000DZJLBG/503-0911234-8979161']);
 
-    // 示例清单2：動畫
-    runSql("INSERT INTO lists (title, product_code, category, author, status, created_at) VALUES (?,?,?,?,?,?)",
-      ['2006年冬季新番推荐清单', '', '動畫', '管理员', 'published', '2006-03-01 10:15:00']);
-    listId = getFirstValue("SELECT last_insert_rowid()");
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 1, 'Fate/stay night']);
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 2, '涼宮ハルヒの憂鬱']);
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 3, 'XXXHOLiC']);
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 4, '銀魂']);
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 5, '死亡筆記']);
-
-    // 示例清单3：遊戲
-    runSql("INSERT INTO lists (title, product_code, category, author, status, created_at) VALUES (?,?,?,?,?,?)",
-      ['经典RPG游戏推荐', '', '遊戲', '访客', 'published', '2006-03-15 14:30:00']);
-    listId = getFirstValue("SELECT last_insert_rowid()");
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 1, 'Final Fantasy X']);
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 2, 'ドラゴンクエストVIII']);
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 3, 'テイルズ オブ シンフォニア']);
-    runSql("INSERT INTO list_items (list_id, sort_order, content) VALUES (?,?,?)", [listId, 4, '王国之心II']);
-
     // 示例留言（已审核）
     runSql("INSERT INTO messages (name, content, status, created_at) VALUES (?,?,?,?)",
-      ['ACG爱好者', '这个站点的清单整理得很不错！希望能看到更多动画相关的清单。', 'approved', '2006-03-10 08:45:00']);
+      ['游客', '希望能看到舊檔', 'approved', '2006-03-10 08:45:00']);
     runSql("INSERT INTO messages (name, content, status, created_at) VALUES (?,?,?,?)",
-      ['音乐迷', '有没有J-POP的推荐清单？很喜欢这里的音乐分类。', 'approved', '2006-03-12 16:20:00']);
+      ['路人A', '可以考虑单开一个OST分组', 'approved', '2006-03-12 16:20:00']);
 
     // 默认发布人：publisher1 / pub123
     var pubHash = bcrypt.hashSync('pub123', 10);
     runSql("INSERT INTO publishers (username, password, display_name, status) VALUES (?,?,?,?)",
-      ['publisher1', pubHash, '发布人甲', 'active']);
+      ['publisher1', pubHash, '发布', 'active']);
 
     saveToFile();
   },
