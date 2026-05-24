@@ -101,7 +101,7 @@
   </div>
 
   <div id="editListModal" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" onclick="event.stopPropagation()">
       <h3 id="editListTitle">编辑清单</h3>
       <form onsubmit="saveList();return false;">
         <div class="form-row">
@@ -151,7 +151,7 @@
   </div>
 
   <div id="addCategoryModal" class="modal-overlay">
-    <div class="modal-box" style="width:350px;">
+    <div class="modal-box" style="width:350px;" onclick="event.stopPropagation()">
       <h3>新增分类</h3>
       <form onsubmit="saveCategory();return false;">
         <div class="form-row">
@@ -167,7 +167,7 @@
   </div>
 
   <div id="editPublisherModal" class="modal-overlay">
-    <div class="modal-box" style="width:400px;">
+    <div class="modal-box" style="width:400px;" onclick="event.stopPropagation()">
       <h3 id="editPublisherTitle">新增发布人</h3>
       <form onsubmit="savePublisher();return false;">
         <div class="form-row">
@@ -198,7 +198,7 @@
   </div>
 
   <div id="replyModal" class="modal-overlay">
-    <div class="modal-box" style="width:500px;">
+    <div class="modal-box" style="width:500px;" onclick="event.stopPropagation()">
       <h3>回复留言</h3>
       <form onsubmit="saveReply();return false;">
         <input type="hidden" id="replyMessageId">
@@ -361,6 +361,7 @@
       document.getElementById('editListName').value = '';
       document.getElementById('editListAuthor').value = '';
       document.getElementById('editListImage').value = '';
+      document.getElementById('editListImageFile').value = '';
       document.getElementById('editProductCode').value = '';
       document.getElementById('editListItems').value = '';
       document.getElementById('editListLinks').value = '';
@@ -379,6 +380,7 @@
     window.editList = function (id) {
       editingListId = id;
       document.getElementById('editListTitle').textContent = '编辑清单 #' + id;
+      document.getElementById('editListImageFile').value = '';
       document.getElementById('editListModal').style.display = 'block';
 
       API.getListById(id, function (err, res) {
