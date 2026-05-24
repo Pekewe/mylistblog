@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!--
+    发布清单总站 - 首页
+    功能：分页展示最新已发布的清单列表
+    加载顺序：api.js → common.js(自动渲染页头/页脚) → 行内JS(加载数据渲染列表+分页器)
+  -->
+  <title>发布清单总站</title>
+  <link rel="stylesheet" type="text/css" href="command.css">
+</head>
+<body id="body">
+  <div id="container">
+    <div id="header"></div>
+
+    <div id="content">
+      <div class="page-title">发布清单</div>
+
+      <div id="listContainer"><div class="loading">加载中...</div></div>
+
+      <div id="pagination" class="pagination"></div>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script>
+    // ---- 加载并渲染清单列表 ----
+    // 分页参数：每页30条
+    function loadPage() {
+      var page = parseInt(Common.getUrlParam('page')) || 1;
+      var pageSize = 30;
+      API.getLists(page, pageSize, function (err, res) {
+        var container = document.getElementById('listContainer');
+        var pagination = document.getElementById('pagination');
+        if (err || !res.ok) {
+          container.innerHTML = '<div class="empty-state">加载失败，请刷新重试。</div>';
+          return;
+        }
+        var lists = res.data;
+        var meta = res.meta;
+        if (lists.length === 0) {
+          container.innerHTML = '<div class="empty-state">暂无发布清单，成为第一个发布者吧！</div>';
+        } else {
+          var html = '';
+          for (var i = 0; i < lists.length; i++) {
+            html += Common.renderListTable(lists[i]);
+          }
+          container.innerHTML = html;
+        }
+        var paginationHtml = '';
+        if (meta.totalPages > 1) {
+          if (page > 1) {
+            paginationHtml += '<a href="index.html?page=' + (page - 1) + '">&laquo; 上一页</a>';
+          }
+          for (var p = 1; p <= meta.totalPages; p++) {
+            paginationHtml += (p === page)
+              ? '<span class="current">' + p + '</span>'
+              : '<a href="index.html?page=' + p + '">' + p + '</a>';
+          }
+          if (page < meta.totalPages) {
+            paginationHtml += '<a href="index.html?page=' + (page + 1) + '">下一页 &raquo;</a>';
+          }
+        }
+        pagination.innerHTML = paginationHtml;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      Common.init(loadPage);
+    });
+  </script>
+</body>
+</html>

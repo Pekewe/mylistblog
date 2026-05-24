@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!--
+    发布清单总站 - 分类浏览页
+    功能：按分类筛选并展示已发布的清单
+    逻辑：点击左侧分类名称 → 右侧显示该分类下的所有清单
+  -->
+  <title>分类 - 发布清单总站</title>
+  <link rel="stylesheet" type="text/css" href="command.css">
+</head>
+<body id="body">
+  <div id="container">
+    <div id="header"></div>
+
+    <div id="content">
+      <div class="page-title">分类浏览</div>
+      <div class="page-subtitle">按类别查看所有发布清单</div>
+
+      <div id="categoryList"><div class="loading">加载中...</div></div>
+
+      <div id="categoryDetail" style="margin-top:20px;"></div>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script>
+    var allLists = [];
+
+    function loadCategories() {
+      API.getCategories(function (err, res) {
+        if (err || !res.ok) {
+          document.getElementById('categoryList').innerHTML = '<div class="empty-state">加载失败</div>';
+          return;
+        }
+        var categories = res.data;
+        var catHtml = '';
+        for (var i = 0; i < categories.length; i++) {
+          catHtml += '<li><a href="javascript:void(0)" onclick="showCategory(\'' +
+            encodeURIComponent(categories[i].name) + '\')">' +
+            Common.escapeHtml(categories[i].name) + '</a> <span>(' + categories[i].count + ')</span></li>';
+        }
+        document.getElementById('categoryList').innerHTML = '<ul>' + catHtml + '</ul>';
+        if (categories.length > 0) {
+          showCategory(categories[0].name);
+        }
+      });
+
+      API.getLists(1, 30, function (err, res) {
+        if (!err && res.ok) {
+          allLists = res.data;
+        }
+      });
+    }
+
+    window.showCategory = function (catName) {
+      catName = decodeURIComponent(catName);
+      var detail = document.getElementById('categoryDetail');
+      if (allLists.length === 0) {
+        API.getLists(1, 30, function (err, res) {
+          if (!err && res.ok) {
+            allLists = res.data;
+          }
+          renderCategoryDetail(catName);
+        });
+      } else {
+        renderCategoryDetail(catName);
+      }
+    };
+
+    function renderCategoryDetail(catName) {
+      var detail = document.getElementById('categoryDetail');
+      var filtered = [];
+      for (var i = 0; i < allLists.length; i++) {
+        if (allLists[i].category === catName && allLists[i].status === 'published') {
+          filtered.push(allLists[i]);
+        }
+      }
+      if (filtered.length === 0) {
+        detail.innerHTML = '<div class="page-subtitle">分类：' + Common.escapeHtml(catName) + '</div>' +
+          '<div class="empty-state">该分类下暂无清单。</div>';
+      } else {
+        var html = '<div class="page-subtitle">分类：' + Common.escapeHtml(catName) + '（共' + filtered.length + '项）</div>';
+        for (var i = 0; i < filtered.length; i++) {
+          html += Common.renderListTable(filtered[i]);
+        }
+        detail.innerHTML = html;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      Common.init(loadCategories);
+    });
+  </script>
+</body>
+</html>

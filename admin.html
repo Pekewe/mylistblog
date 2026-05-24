@@ -1,0 +1,779 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!--
+    发布清单总站 - 管理后台
+    功能：管理员登录后可进行清单/留言/分类/发布人/设置的全面管理
+    标签页：lists(清单) / messages(留言) / publishers(发布人) / categories(分类) / settings(设置)
+    认证方式：session + Cookie（24小时有效期）
+  -->
+  <title>管理后台 - 发布清单总站</title>
+  <link rel="stylesheet" type="text/css" href="command.css">
+</head>
+<body class="admin-body">
+  <div id="adminLogin" class="admin-login">
+    <h2>管理员登录</h2>
+    <div id="loginError" class="error"></div>
+    <form onsubmit="adminLogin();return false;">
+      <table>
+        <tr>
+          <td class="label">用户名：</td>
+          <td><input type="text" id="loginUser" value="admin"></td>
+        </tr>
+        <tr>
+          <td class="label">密码：</td>
+          <td><input type="password" id="loginPass" value="admin123"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td style="text-align:center;"><button type="submit">登 录</button></td>
+        </tr>
+      </table>
+    </form>
+  </div>
+
+  <div id="adminPanel" style="display:none;width:100%;">
+    <div class="admin-header">
+      <h1>管理后台 - 发布清单总站</h1>
+      <div>
+        <a href="index.html" target="_blank">查看站点</a> &nbsp;|&nbsp;
+        <a href="javascript:void(0)" onclick="adminLogout()">退出登录</a>
+      </div>
+    </div>
+
+    <div class="admin-nav">
+      <table>
+        <tr>
+          <td id="navLists" class="active"><a href="javascript:void(0)" onclick="switchTab('lists')">清单管理</a></td>
+          <td id="navMessages"><a href="javascript:void(0)" onclick="switchTab('messages')">留言管理</a></td>
+          <td id="navPublishers"><a href="javascript:void(0)" onclick="switchTab('publishers')">发布人管理</a></td>
+          <td id="navCategories"><a href="javascript:void(0)" onclick="switchTab('categories')">分类管理</a></td>
+          <td id="navSettings"><a href="javascript:void(0)" onclick="switchTab('settings')">站点设置</a></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="admin-content">
+      <div id="tabLists">
+        <div class="page-title">清单管理</div>
+        <div class="admin-toolbar">
+          <button onclick="showAddListModal()">+ 新增清单</button>
+        </div>
+        <div class="search-box" style="text-align:left;margin:5px 0;">
+          <form onsubmit="doListSearch();return false;">
+            <input type="text" id="listSearchInput" placeholder="搜索标题、分类、作者、内容..." style="width:300px;">
+            <button type="submit">搜索</button>
+            <button type="button" onclick="clearListSearch()" style="margin-left:5px;">清除</button>
+          </form>
+        </div>
+        <div id="listTableContainer"><div class="loading">加载中...</div></div>
+        <div id="listPagination" class="pagination"></div>
+      </div>
+
+      <div id="tabMessages" style="display:none;">
+        <div class="page-title">留言管理</div>
+        <div id="messageTableContainer"><div class="loading">加载中...</div></div>
+        <div id="msgAdminPagination" class="pagination"></div>
+      </div>
+
+      <div id="tabPublishers" style="display:none;">
+        <div class="page-title">发布人管理</div>
+        <div class="admin-toolbar">
+          <button onclick="showAddPublisherModal()">+ 新增发布人</button>
+        </div>
+        <div id="publisherTableContainer"><div class="loading">加载中...</div></div>
+      </div>
+
+      <div id="tabCategories" style="display:none;">
+        <div class="page-title">分类管理</div>
+        <div class="admin-toolbar">
+          <button onclick="showAddCategoryModal()">+ 新增分类</button>
+        </div>
+        <div id="categoryTableContainer"><div class="loading">加载中...</div></div>
+      </div>
+
+      <div id="tabSettings" style="display:none;">
+        <div class="page-title">站点设置</div>
+        <div id="settingsContainer"><div class="loading">加载中...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="editListModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 id="editListTitle">编辑清单</h3>
+      <form onsubmit="saveList();return false;">
+        <div class="form-row">
+          <label>清单名称</label>
+          <input type="text" id="editListName" required>
+        </div>
+        <div class="form-row">
+          <label>分类</label>
+          <select id="editListCategory"></select>
+        </div>
+        <div class="form-row">
+          <label>商品編號</label>
+          <input type="text" id="editProductCode" placeholder="可选">
+        </div>
+        <div class="form-row">
+          <label>作者</label>
+          <input type="text" id="editListAuthor" required>
+        </div>
+        <div class="form-row">
+          <label>封面图片</label>
+          <input type="file" id="editListImageFile" accept=".jpg,.jpeg,.png,.gif">
+          <div style="font-size:12px;color:#999;margin-top:3px;">选择文件上传，或输入链接：</div>
+          <input type="text" id="editListImage" placeholder="/uploads/images/... 或 http://...">
+        </div>
+        <div class="form-row">
+          <label>状态</label>
+          <select id="editListStatus">
+            <option value="published">已发布</option>
+            <option value="draft">草稿</option>
+            <option value="pending">待审核</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>相关链接（每行一个，格式：名称|URL）</label>
+          <textarea id="editListLinks" rows="3" placeholder="相关网站|http://example.com"></textarea>
+        </div>
+        <div class="form-row">
+          <label>清单内容（每行一项）</label>
+          <textarea id="editListItems" rows="8" required placeholder="每行一个项目"></textarea>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit">保存</button>
+          <button type="button" onclick="closeModal('editListModal')">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="addCategoryModal" class="modal-overlay">
+    <div class="modal-box" style="width:350px;">
+      <h3>新增分类</h3>
+      <form onsubmit="saveCategory();return false;">
+        <div class="form-row">
+          <label>分类名称</label>
+          <input type="text" id="newCategoryName" required>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit">添加</button>
+          <button type="button" onclick="closeModal('addCategoryModal')">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="editPublisherModal" class="modal-overlay">
+    <div class="modal-box" style="width:400px;">
+      <h3 id="editPublisherTitle">新增发布人</h3>
+      <form onsubmit="savePublisher();return false;">
+        <div class="form-row">
+          <label>用户名</label>
+          <input type="text" id="editPubUsername" required maxlength="30" placeholder="2-30个字符">
+        </div>
+        <div class="form-row">
+          <label>密码</label>
+          <input type="text" id="editPubPassword" placeholder="新增时必填，编辑留空则不修改">
+        </div>
+        <div class="form-row">
+          <label>显示名称（昵称）</label>
+          <input type="text" id="editPubDisplayName" maxlength="50" placeholder="发布清单时显示的作者名">
+        </div>
+        <div class="form-row">
+          <label>状态</label>
+          <select id="editPubStatus">
+            <option value="active">启用</option>
+            <option value="disabled">禁用</option>
+          </select>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit">保存</button>
+          <button type="button" onclick="closeModal('editPublisherModal')">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="replyModal" class="modal-overlay">
+    <div class="modal-box" style="width:500px;">
+      <h3>回复留言</h3>
+      <form onsubmit="saveReply();return false;">
+        <input type="hidden" id="replyMessageId">
+        <div class="form-row">
+          <label>回复内容</label>
+          <textarea id="replyContent" rows="5" required placeholder="请输入管理员回复..."></textarea>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit">发送回复</button>
+          <button type="button" onclick="closeModal('replyModal')">取消</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    var currentTab = 'lists';
+    var editingListId = null;
+    var allCategoriesCache = [];
+
+    function setLoading(id) {
+      var el = document.getElementById(id);
+      if (el && el.innerHTML.trim() === '') el.innerHTML = '<div class="loading">加载中...</div>';
+    }
+
+    function adminLogin() {
+      var user = document.getElementById('loginUser').value.trim();
+      var pass = document.getElementById('loginPass').value.trim();
+
+      API.login(user, pass, function (err, res) {
+        if (err || !res.ok) {
+          document.getElementById('loginError').innerHTML = '用户名或密码错误！';
+          return;
+        }
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('loginError').innerHTML = '';
+        loadCategoriesCache(function () {
+          renderLists();
+          renderMessages();
+          renderPublishers();
+          renderCategories();
+          renderSettings();
+        });
+      });
+    }
+
+    function adminLogout() {
+      API.logout(function () {
+        document.getElementById('adminLogin').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('loginUser').value = 'admin';
+        document.getElementById('loginPass').value = 'admin123';
+      });
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      var tabs = ['lists', 'messages', 'publishers', 'categories', 'settings'];
+      for (var i = 0; i < tabs.length; i++) {
+        var id = tabs[i];
+        document.getElementById('tab' + id.charAt(0).toUpperCase() + id.slice(1)).style.display = 'none';
+        document.getElementById('nav' + id.charAt(0).toUpperCase() + id.slice(1)).className = '';
+      }
+      var tabId = tab.charAt(0).toUpperCase() + tab.slice(1);
+      document.getElementById('tab' + tabId).style.display = 'block';
+      document.getElementById('nav' + tabId).className = 'active';
+
+      if (tab === 'lists') renderLists();
+      else if (tab === 'messages') renderMessages();
+      else if (tab === 'publishers') renderPublishers();
+      else if (tab === 'categories') renderCategories();
+      else if (tab === 'settings') renderSettings();
+    }
+
+    function loadCategoriesCache(callback) {
+      API.getCategories(function (err, res) {
+        if (!err && res.ok) allCategoriesCache = res.data;
+        if (callback) callback();
+      });
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    var listPage = 1;
+    var listTotalPages = 1;
+    var listKeyword = '';
+
+    function renderLists() {
+      var url = '/admin/lists?page=' + listPage + '&size=100';
+      if (listKeyword) url = '/admin/lists/search?q=' + encodeURIComponent(listKeyword) + '&page=' + listPage + '&size=100';
+      API.get(url, function (err, res) {
+        var container = document.getElementById('listTableContainer');
+        var pagination = document.getElementById('listPagination');
+        if (err || !res.ok) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+        var lists = res.data;
+        var meta = res.meta;
+        if (meta) { listPage = meta.page; listTotalPages = meta.totalPages; }
+        var html = '<table class="admin-table"><thead><tr><th>ID</th><th>名称</th><th>分类</th><th>作者</th><th>状态</th><th>日期</th><th>操作</th></tr></thead><tbody>';
+        if (lists.length === 0) {
+          html += '<tr><td colspan="7" style="text-align:center;color:#999;">暂无清单数据</td></tr>';
+        } else {
+          for (var i = 0; i < lists.length; i++) {
+            var statusText = lists[i].status === 'published' ? '已发布' : (lists[i].status === 'draft' ? '草稿' : '待审核');
+            html += '<tr>' +
+              '<td>' + lists[i].id + '</td>' +
+              '<td>' + escapeHtml(lists[i].title) + '</td>' +
+              '<td>' + escapeHtml(lists[i].category) + '</td>' +
+              '<td>' + escapeHtml(lists[i].author) + '</td>' +
+              '<td class="admin-status-' + lists[i].status + '">' + statusText + '</td>' +
+              '<td style="font-size:11px;">' + lists[i].created_at + '</td>' +
+              '<td class="actions">' +
+              (lists[i].status === 'pending' ? '<a href="javascript:void(0)" onclick="approveList(' + lists[i].id + ')" style="color:#006600;">通过</a>' : '') +
+              '<a href="javascript:void(0)" onclick="editList(' + lists[i].id + ')">编辑</a>' +
+              '<a href="javascript:void(0)" onclick="deleteListConfirm(' + lists[i].id + ')" style="color:#cc0000;">删除</a>' +
+              '</td></tr>';
+          }
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        var ph = '';
+        if (listTotalPages > 1) {
+          if (listPage > 1) { ph += '<a href="javascript:void(0)" onclick="goListPage(' + (listPage-1) + ')">&laquo; 上一页</a>'; }
+          for (var p = 1; p <= listTotalPages; p++) {
+            ph += (p === listPage) ? '<span class="current">' + p + '</span>' : '<a href="javascript:void(0)" onclick="goListPage(' + p + ')">' + p + '</a>';
+          }
+          if (listPage < listTotalPages) { ph += '<a href="javascript:void(0)" onclick="goListPage(' + (listPage+1) + ')">下一页 &raquo;</a>'; }
+        }
+        pagination.innerHTML = ph;
+      });
+    }
+
+    function goListPage(p) { listPage = p; renderLists(); }
+
+    function doListSearch() {
+      var q = document.getElementById('listSearchInput').value.trim();
+      listKeyword = q;
+      listPage = 1;
+      renderLists();
+    }
+
+    function clearListSearch() {
+      document.getElementById('listSearchInput').value = '';
+      listKeyword = '';
+      listPage = 1;
+      renderLists();
+    }
+
+    window.approveList = function (id) {
+      API.adminUpdateList(id, { status: 'published' }, function () { renderLists(); });
+    };
+
+    function showAddListModal() {
+      editingListId = null;
+      document.getElementById('editListTitle').textContent = '新增清单';
+      document.getElementById('editListName').value = '';
+      document.getElementById('editListAuthor').value = '';
+      document.getElementById('editListImage').value = '';
+      document.getElementById('editProductCode').value = '';
+      document.getElementById('editListItems').value = '';
+      document.getElementById('editListLinks').value = '';
+      document.getElementById('editListStatus').value = 'published';
+      var catSel = document.getElementById('editListCategory');
+      catSel.innerHTML = '';
+      for (var i = 0; i < allCategoriesCache.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = allCategoriesCache[i].name;
+        opt.textContent = allCategoriesCache[i].name;
+        catSel.appendChild(opt);
+      }
+      document.getElementById('editListModal').style.display = 'block';
+    }
+
+    window.editList = function (id) {
+      editingListId = id;
+      document.getElementById('editListTitle').textContent = '编辑清单 #' + id;
+      document.getElementById('editListModal').style.display = 'block';
+
+      API.getListById(id, function (err, res) {
+        if (err || !res.ok || !res.data) {
+          closeModal('editListModal');
+          return;
+        }
+        var list = res.data;
+        document.getElementById('editListName').value = list.title;
+        document.getElementById('editListAuthor').value = list.author;
+        document.getElementById('editListImage').value = list.image || '';
+        document.getElementById('editProductCode').value = list.product_code || '';
+        document.getElementById('editListItems').value = list.items ? list.items.join('\n') : '';
+        document.getElementById('editListStatus').value = list.status || 'published';
+        var linksStr = '';
+        if (list.links) {
+          for (var i = 0; i < list.links.length; i++) {
+            linksStr += list.links[i].title + '|' + list.links[i].url + '\n';
+          }
+        }
+        document.getElementById('editListLinks').value = linksStr.trim();
+        var catSel = document.getElementById('editListCategory');
+        catSel.innerHTML = '';
+        for (var i = 0; i < allCategoriesCache.length; i++) {
+          var opt = document.createElement('option');
+          opt.value = allCategoriesCache[i].name;
+          opt.textContent = allCategoriesCache[i].name;
+          if (allCategoriesCache[i].name === list.category) opt.selected = true;
+          catSel.appendChild(opt);
+        }
+      });
+    };
+
+    function saveList() {
+      var title = document.getElementById('editListName').value.trim();
+      var category = document.getElementById('editListCategory').value;
+      var author = document.getElementById('editListAuthor').value.trim();
+      var imageUrl = document.getElementById('editListImage').value.trim();
+      var imageFile = document.getElementById('editListImageFile').files[0];
+      var status = document.getElementById('editListStatus').value;
+      var productCode = document.getElementById('editProductCode').value.trim();
+      var itemsText = document.getElementById('editListItems').value.trim();
+      var linksText = document.getElementById('editListLinks').value.trim();
+
+      if (!title || !category || !author || !itemsText) {
+        Common.showAlert('清单名称、分类、作者、内容为必填项', 'error');
+        return;
+      }
+
+      var items = [];
+      var lines = itemsText.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line) {
+          line = line.replace(/^\d+[\.\、\-\s]*/, '');
+          items.push(line);
+        }
+      }
+
+      var links = [];
+      if (linksText) {
+        var linkLines = linksText.split('\n');
+        for (var i = 0; i < linkLines.length; i++) {
+          var parts = linkLines[i].split('|');
+          if (parts.length >= 2) {
+            links.push({ title: parts[0].trim(), url: parts.slice(1).join('|').trim() });
+          }
+        }
+      }
+
+      function doSave(image) {
+        var data = { title: title, product_code: productCode, category: category, author: author, image: image || '', items: items, links: links, status: status };
+        var callApi;
+        if (editingListId === null) {
+          callApi = API.adminCreateList(data, function (err, res) {
+            if (err || !res.ok) { Common.showAlert('保存失败：' + (res && res.error ? res.error.message : '请求错误'), 'error'); return; }
+            closeModal('editListModal');
+            renderLists();
+          });
+        } else {
+          API.adminUpdateList(editingListId, data, function (err, res) {
+            if (err || !res.ok) { Common.showAlert('保存失败：' + (res && res.error ? res.error.message : '请求错误'), 'error'); return; }
+            closeModal('editListModal');
+            renderLists();
+          });
+        }
+      }
+
+      if (imageFile) {
+        API.uploadImage(imageFile, function (err, res) {
+          if (err || !res.ok) { return; }
+          doSave(res.data.url);
+        });
+      } else {
+        doSave(imageUrl);
+      }
+    }
+
+    window.deleteListConfirm = function (id) {
+      if (!confirm('确定要删除清单 #' + id + ' 吗？')) return;
+      API.adminDeleteList(id, function (err, res) {
+        if (err || !res.ok) return;
+        renderLists();
+      });
+    };
+
+    var msgPage = 1;
+    var msgTotalPages = 1;
+
+    function renderMessages() {
+      API.get('/admin/messages?page=' + msgPage + '&size=100', function (err, res) {
+        var container = document.getElementById('messageTableContainer');
+        var pagination = document.getElementById('msgAdminPagination');
+        if (err || !res.ok) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+        var msgs = res.data;
+        var meta = res.meta;
+        if (meta) { msgPage = meta.page; msgTotalPages = meta.totalPages; }
+        var html = '<table class="admin-table"><thead><tr><th>ID</th><th>昵称</th><th>内容</th><th>回复</th><th>状态</th><th>日期</th><th>操作</th></tr></thead><tbody>';
+        if (msgs.length === 0) {
+          html += '<tr><td colspan="7" style="text-align:center;color:#999;">暂无留言数据</td></tr>';
+        } else {
+          for (var i = 0; i < msgs.length; i++) {
+            var statusText = msgs[i].status === 'approved' ? '已通过' : (msgs[i].status === 'rejected' ? '已拒绝' : '待审核');
+            var content = msgs[i].content.length > 50 ? msgs[i].content.substring(0, 50) + '...' : msgs[i].content;
+            var replyStatus = msgs[i].reply_content ? '<span style="color:#006600;">已回复</span>' : '<span style="color:#999;">未回复</span>';
+            html += '<tr>' +
+              '<td>' + msgs[i].id + '</td>' +
+              '<td>' + escapeHtml(msgs[i].name) + '</td>' +
+              '<td>' + escapeHtml(content) + '</td>' +
+              '<td>' + replyStatus + '</td>' +
+              '<td class="admin-status-' + msgs[i].status + '">' + statusText + '</td>' +
+              '<td style="font-size:11px;">' + msgs[i].created_at + '</td>' +
+              '<td class="actions">';
+            if (msgs[i].status !== 'approved') {
+              html += '<a href="javascript:void(0)" onclick="approveMessage(' + msgs[i].id + ')" style="color:#006600;">通过</a>';
+            }
+            if (msgs[i].status !== 'rejected') {
+              html += '<a href="javascript:void(0)" onclick="rejectMessage(' + msgs[i].id + ')" style="color:#cc6600;">拒绝</a>';
+            }
+            html += '<a href="javascript:void(0)" onclick="showReplyModal(' + msgs[i].id + ')">回复</a>' +
+              '<a href="javascript:void(0)" onclick="deleteMessageConfirm(' + msgs[i].id + ')" style="color:#cc0000;">删除</a></td></tr>';
+          }
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        var ph = '';
+        if (msgTotalPages > 1) {
+          if (msgPage > 1) { ph += '<a href="javascript:void(0)" onclick="goMsgPage(' + (msgPage-1) + ')">&laquo; 上一页</a>'; }
+          for (var p = 1; p <= msgTotalPages; p++) {
+            ph += (p === msgPage) ? '<span class="current">' + p + '</span>' : '<a href="javascript:void(0)" onclick="goMsgPage(' + p + ')">' + p + '</a>';
+          }
+          if (msgPage < msgTotalPages) { ph += '<a href="javascript:void(0)" onclick="goMsgPage(' + (msgPage+1) + ')">下一页 &raquo;</a>'; }
+        }
+        pagination.innerHTML = ph;
+      });
+    }
+
+    function goMsgPage(p) { msgPage = p; renderMessages(); }
+
+    window.approveMessage = function (id) {
+      API.adminUpdateMessage(id, { status: 'approved' }, function () { renderMessages(); });
+    };
+
+    window.rejectMessage = function (id) {
+      API.adminUpdateMessage(id, { status: 'rejected' }, function () { renderMessages(); });
+    };
+
+    window.deleteMessageConfirm = function (id) {
+      if (!confirm('确定要删除此留言吗？')) return;
+      API.adminDeleteMessage(id, function () { renderMessages(); });
+    };
+
+    window.showReplyModal = function (id) {
+      document.getElementById('replyMessageId').value = id;
+
+      API.get('/admin/messages?page=1&size=9999', function (err, res) {
+        if (err || !res.ok) return;
+        for (var i = 0; i < res.data.length; i++) {
+          if (res.data[i].id === id) {
+            document.getElementById('replyContent').value = res.data[i].reply_content || '';
+            break;
+          }
+        }
+      });
+
+      document.getElementById('replyModal').style.display = 'block';
+    };
+
+    function saveReply() {
+      var id = parseInt(document.getElementById('replyMessageId').value);
+      var content = document.getElementById('replyContent').value.trim();
+      if (!content) { return; }
+      API.adminReplyMessage(id, { replyContent: content }, function (err, res) {
+        if (err || !res.ok) { return; }
+        closeModal('replyModal');
+        renderMessages();
+      });
+    }
+
+    var editingPublisherId = null;
+
+    function renderPublishers() {
+      API.adminGetPublishers(function (err, res) {
+        var container = document.getElementById('publisherTableContainer');
+        if (err || !res.ok) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+        var list = res.data;
+        var html = '<table class="admin-table"><thead><tr><th>ID</th><th>用户名</th><th>显示名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+        if (list.length === 0) {
+          html += '<tr><td colspan="6" style="text-align:center;color:#999;">暂无发布人</td></tr>';
+        } else {
+          for (var i = 0; i < list.length; i++) {
+            var statusText = list[i].status === 'active' ? '启用' : '禁用';
+            var statusClass = list[i].status === 'active' ? 'admin-status-approved' : 'admin-status-rejected';
+            html += '<tr>' +
+              '<td>' + list[i].id + '</td>' +
+              '<td>' + escapeHtml(list[i].username) + '</td>' +
+              '<td>' + escapeHtml(list[i].display_name) + '</td>' +
+              '<td class="' + statusClass + '">' + statusText + '</td>' +
+              '<td style="font-size:11px;">' + list[i].created_at + '</td>' +
+              '<td class="actions">' +
+              '<a href="javascript:void(0)" onclick="editPublisher(' + list[i].id + ')">编辑</a>' +
+              (list[i].status === 'active'
+                ? '<a href="javascript:void(0)" onclick="togglePublisherStatus(' + list[i].id + ',\'disabled\')" style="color:#cc6600;">禁用</a>'
+                : '<a href="javascript:void(0)" onclick="togglePublisherStatus(' + list[i].id + ',\'active\')" style="color:#006600;">启用</a>') +
+              '</td></tr>';
+          }
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      });
+    }
+
+    function showAddPublisherModal() {
+      editingPublisherId = null;
+      document.getElementById('editPublisherTitle').textContent = '新增发布人';
+      document.getElementById('editPubUsername').value = '';
+      document.getElementById('editPubUsername').disabled = false;
+      document.getElementById('editPubPassword').value = '';
+      document.getElementById('editPubPassword').required = true;
+      document.getElementById('editPubPassword').placeholder = '密码至少4个字符';
+      document.getElementById('editPubDisplayName').value = '';
+      document.getElementById('editPubStatus').value = 'active';
+      document.getElementById('editPublisherModal').style.display = 'block';
+    }
+
+    window.editPublisher = function (id) {
+      editingPublisherId = id;
+      document.getElementById('editPublisherTitle').textContent = '编辑发布人 #' + id;
+      document.getElementById('editPubUsername').disabled = true;
+      document.getElementById('editPubPassword').value = '';
+      document.getElementById('editPubPassword').required = false;
+      document.getElementById('editPubPassword').placeholder = '留空则不修改密码';
+      document.getElementById('editPublisherModal').style.display = 'block';
+
+      API.adminGetPublishers(function (err, res) {
+        if (err || !res.ok) return;
+        for (var i = 0; i < res.data.length; i++) {
+          if (res.data[i].id === id) {
+            document.getElementById('editPubUsername').value = res.data[i].username;
+            document.getElementById('editPubDisplayName').value = res.data[i].display_name;
+            document.getElementById('editPubStatus').value = res.data[i].status;
+            return;
+          }
+        }
+      });
+    };
+
+    function savePublisher() {
+      var username = document.getElementById('editPubUsername').value.trim();
+      var password = document.getElementById('editPubPassword').value.trim();
+      var displayName = document.getElementById('editPubDisplayName').value.trim() || username;
+      var status = document.getElementById('editPubStatus').value;
+
+      if (!username) { return; }
+      if (editingPublisherId === null && !password) { return; }
+      if (password && password.length < 4) { return; }
+
+      if (editingPublisherId === null) {
+        API.adminAddPublisher({ username: username, password: password, display_name: displayName }, function (err, res) {
+          if (err || !res.ok) { return; }
+          closeModal('editPublisherModal');
+          renderPublishers();
+        });
+      } else {
+        var data = { display_name: displayName, status: status };
+        if (password) data.password = password;
+        API.adminUpdatePublisher(editingPublisherId, data, function (err, res) {
+          if (err || !res.ok) { return; }
+          closeModal('editPublisherModal');
+          renderPublishers();
+        });
+      }
+    }
+
+    window.togglePublisherStatus = function (id, newStatus) {
+      var text = newStatus === 'disabled' ? '禁用' : '启用';
+      if (!confirm('确定要' + text + '此发布人吗？')) return;
+      API.adminUpdatePublisher(id, { status: newStatus }, function (err, res) {
+        if (err || !res.ok) return;
+        renderPublishers();
+      });
+    };
+
+    function renderCategories() {
+      API.getCategories(function (err, res) {
+        var container = document.getElementById('categoryTableContainer');
+        if (err || !res.ok) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+        var cats = res.data;
+        var html = '<table class="admin-table"><thead><tr><th>ID</th><th>分类名称</th><th>清单数量</th><th>操作</th></tr></thead><tbody>';
+        if (cats.length === 0) {
+          html += '<tr><td colspan="4" style="text-align:center;color:#999;">暂无分类</td></tr>';
+        } else {
+          for (var i = 0; i < cats.length; i++) {
+            html += '<tr>' +
+              '<td>' + cats[i].id + '</td>' +
+              '<td>' + escapeHtml(cats[i].name) + '</td>' +
+              '<td>' + cats[i].count + '</td>' +
+              '<td class="actions">' +
+              '<a href="javascript:void(0)" onclick="deleteCategoryConfirm(' + cats[i].id + ',\'' + escapeHtml(cats[i].name) + '\')" style="color:#cc0000;">删除</a>' +
+              '</td></tr>';
+          }
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      });
+    }
+
+    function showAddCategoryModal() {
+      document.getElementById('newCategoryName').value = '';
+      document.getElementById('addCategoryModal').style.display = 'block';
+    }
+
+    function saveCategory() {
+      var name = document.getElementById('newCategoryName').value.trim();
+      if (!name) return;
+      API.adminAddCategory(name, function (err, res) {
+        if (err || !res.ok) { return; }
+        closeModal('addCategoryModal');
+        loadCategoriesCache(renderCategories);
+      });
+    }
+
+    window.deleteCategoryConfirm = function (id, name) {
+      if (!confirm('确定要删除分类 "' + name + '" 吗？')) return;
+      API.adminDeleteCategory(id, function () {
+        loadCategoriesCache(renderCategories);
+      });
+    };
+
+    function renderSettings() {
+      API.adminGetSettings(function (err, res) {
+        var container = document.getElementById('settingsContainer');
+        if (err || !res.ok) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+        var settings = res.data;
+        var html = '<div class="post-form">' +
+          '<form onsubmit="saveSettings();return false;">' +
+          '<table>' +
+          '<tr><td class="label">站点名称：</td><td><input type="text" id="setSiteName" value="' + escapeHtml(settings.site_name || '') + '"></td></tr>' +
+          '<tr><td class="label">站点简介：</td><td><textarea id="setSiteIntro" rows="3">' + escapeHtml(settings.site_intro || '') + '</textarea></td></tr>' +
+          '<tr><td class="label">新密码：</td><td><input type="text" id="setNewPass" placeholder="留空则不修改密码"></td></tr>' +
+          '<tr><td></td><td><button type="submit">保存设置</button></td></tr>' +
+          '</table>' +
+          '</form>' +
+          '</div>';
+        container.innerHTML = html;
+      });
+    }
+
+    function saveSettings() {
+      var data = {};
+      var siteName = document.getElementById('setSiteName').value.trim();
+      var siteIntro = document.getElementById('setSiteIntro').value.trim();
+      var newPass = document.getElementById('setNewPass').value.trim();
+
+      if (siteName) data.site_name = siteName;
+      data.site_intro = siteIntro;
+
+      API.adminSaveSettings(data, function (err, res) {
+        if (err || !res.ok) return;
+        if (newPass) {
+          API.adminChangePassword(newPass, function () {});
+        }
+        renderSettings();
+      });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    window.onclick = function (e) {
+      if (e.target.className === 'modal-overlay') {
+        e.target.style.display = 'none';
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!--
+    发布清单总站 - 留言板
+    功能：浏览已审核留言、提交新留言
+    说明：新留言提交后默认为 pending 状态，需要管理员审核通过后才显示
+  -->
+  <title>留言板 - 发布清单总站</title>
+  <link rel="stylesheet" type="text/css" href="command.css">
+</head>
+<body id="body">
+  <div id="container">
+    <div id="header"></div>
+
+    <div id="content">
+      <div class="page-title">留言板</div>
+      <div class="page-subtitle">欢迎留下你的意见和建议</div>
+
+      <div class="bbs-post">
+        <form onsubmit="submitMessage();return false;">
+          <table>
+            <tr>
+              <td class="label">昵称：</td>
+              <td><input type="text" id="msgName" required placeholder="你的名字或昵称"></td>
+            </tr>
+            <tr>
+              <td class="label">内容：</td>
+              <td><textarea id="msgContent" rows="5" required placeholder="请输入留言内容..."></textarea></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td><button type="submit">提交留言</button></td>
+            </tr>
+          </table>
+        </form>
+      </div>
+
+      <div id="messageSuccess" class="alert alert-success" style="display:none;"></div>
+
+      <div class="section-title">所有留言</div>
+      <div id="messageList"><div class="loading">加载中...</div></div>
+      <div id="msgPagination" class="pagination"></div>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script>
+    function renderMessages() {
+      var page = parseInt(Common.getUrlParam('page')) || 1;
+      var pageSize = 50;
+      API.getMessages(page, pageSize, function (err, res) {
+        var container = document.getElementById('messageList');
+        var pagination = document.getElementById('msgPagination');
+        if (err || !res.ok) {
+          container.innerHTML = '<div class="empty-state">加载留言失败</div>';
+          return;
+        }
+        var msgs = res.data;
+        var meta = res.meta;
+        if (msgs.length === 0) {
+          container.innerHTML = '<div class="empty-state">暂无留言，快来发表第一条留言吧！</div>';
+        } else {
+          var html = '';
+          for (var i = 0; i < msgs.length; i++) {
+            html += Common.renderMessageItem(msgs[i]);
+          }
+          container.innerHTML = html;
+        }
+        var paginationHtml = '';
+        if (meta.totalPages > 1) {
+          if (page > 1) {
+            paginationHtml += '<a href="lt-bbs.html?page=' + (page - 1) + '">&laquo; 上一页</a>';
+          }
+          for (var p = 1; p <= meta.totalPages; p++) {
+            paginationHtml += (p === page)
+              ? '<span class="current">' + p + '</span>'
+              : '<a href="lt-bbs.html?page=' + p + '">' + p + '</a>';
+          }
+          if (page < meta.totalPages) {
+            paginationHtml += '<a href="lt-bbs.html?page=' + (page + 1) + '">下一页 &raquo;</a>';
+          }
+        }
+        pagination.innerHTML = paginationHtml;
+      });
+    }
+
+    function submitMessage() {
+      var name = document.getElementById('msgName').value.trim();
+      var content = document.getElementById('msgContent').value.trim();
+
+      if (!name) { Common.showAlert('请输入你的昵称', 'error'); return; }
+      if (!content) { Common.showAlert('请输入留言内容', 'error'); return; }
+
+      API.addMessage({ name: name, content: content }, function (err, res) {
+        if (err || !res.ok) {
+          Common.showAlert('提交失败，请重试', 'error');
+          return;
+        }
+        document.getElementById('msgName').value = '';
+        document.getElementById('msgContent').value = '';
+        var successDiv = document.getElementById('messageSuccess');
+        successDiv.style.display = 'block';
+        successDiv.innerHTML = '留言提交成功！管理员审核通过后将显示在留言板上。';
+        setTimeout(function () {
+          successDiv.style.display = 'none';
+        }, 5000);
+        Common.showAlert('留言提交成功，等待管理员审核', 'success');
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      Common.init(renderMessages);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!--
+    发布清单总站 - 发布页
+    功能：提交新清单，需验证发布人账号密码
+    注意：提交的内容默认为 pending（待审核）状态
+  -->
+  <title>发布清单 - 发布清单总站</title>
+  <link rel="stylesheet" type="text/css" href="command.css">
+</head>
+<body id="body">
+  <div id="container">
+    <div id="header"></div>
+
+    <div id="content">
+      <div class="page-title">发布新清单</div>
+      <div class="page-subtitle">使用你的发布账号提交清单</div>
+
+      <div id="postForm" class="post-form">
+        <form onsubmit="submitList();return false;">
+          <table>
+            <tr>
+              <td class="label">发布账号：</td>
+              <td><input type="text" id="pubUsername" required placeholder="管理员分配的发布账号"></td>
+            </tr>
+            <tr>
+              <td class="label">密码：</td>
+              <td><input type="password" id="pubPassword" required placeholder="账号密码"></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td style="font-size:12px;color:#999;">作者名称将使用你的账号昵称</td>
+            </tr>
+            <tr>
+              <td class="label">清单名称：</td>
+              <td><input type="text" id="listTitle" required placeholder="请输入清单名称"></td>
+            </tr>
+            <tr>
+              <td class="label">分类：</td>
+              <td>
+                <select id="listCategory">
+                  <option value="">请选择分类</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="label">商品編號：</td>
+              <td><input type="text" id="productCode" placeholder="可选，输入商品編號"></td>
+            </tr>
+            <tr>
+              <td class="label">封面图片：</td>
+              <td>
+                <input type="file" id="listImageFile" accept=".jpg,.jpeg,.png,.gif">
+                <div class="form-note">支持 JPG、PNG、GIF，最大 5MB。上传后自动填充下方链接</div>
+                <div style="margin-top:5px;font-size:12px;color:#999;">或使用图片外链：</div>
+                <input type="text" id="listImage" placeholder="http://... 或 /uploads/images/...">
+              </td>
+            </tr>
+            <tr>
+              <td class="label">相关链接：</td>
+              <td>
+                <textarea id="listLinks" rows="3" placeholder="每行一个，格式：名称|URL&#10;例如：&#10;相关网站|http://example.com"></textarea>
+                <div class="form-note">每行输入一个链接，名称和URL之间用 | 分隔</div>
+              </td>
+            </tr>
+            <tr>
+              <td class="label">清单内容：</td>
+              <td>
+                <textarea id="listItems" rows="8" required placeholder="每行一个项目，例如：&#10;1. 项目一&#10;2. 项目二&#10;3. 项目三"></textarea>
+                <div class="form-note">每行输入一个清单项目，建议使用数字编号</div>
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td><button type="submit">提交清单</button></td>
+            </tr>
+          </table>
+        </form>
+      </div>
+
+      <div id="postSuccess" class="post-success" style="display:none;"></div>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      Common.init(function () {
+        API.getCategories(function (err, res) {
+          if (err || !res.ok) return;
+          var sel = document.getElementById('listCategory');
+          sel.innerHTML = '<option value="">请选择分类</option>';
+          for (var i = 0; i < res.data.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = res.data[i].name;
+            opt.textContent = res.data[i].name;
+            sel.appendChild(opt);
+          }
+        });
+      });
+    });
+
+    function submitList() {
+      var username = document.getElementById('pubUsername').value.trim();
+      var password = document.getElementById('pubPassword').value.trim();
+      var title = document.getElementById('listTitle').value.trim();
+      var category = document.getElementById('listCategory').value;
+      var imageUrl = document.getElementById('listImage').value.trim();
+      var imageFile = document.getElementById('listImageFile').files[0];
+      var itemsText = document.getElementById('listItems').value.trim();
+      var linksText = document.getElementById('listLinks').value.trim();
+      var productCode = document.getElementById('productCode').value.trim();
+
+      if (!username || !password) { Common.showAlert('请输入发布账号和密码', 'error'); return; }
+      if (!title) { Common.showAlert('请输入清单名称', 'error'); return; }
+      if (!category) { Common.showAlert('请选择分类', 'error'); return; }
+      if (!itemsText) { Common.showAlert('请输入清单内容', 'error'); return; }
+
+      var items = [];
+      var lines = itemsText.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line) {
+          line = line.replace(/^\d+[\.\、\-\s]*/, '');
+          items.push(line);
+        }
+      }
+
+      var btn = document.getElementById('postForm').querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = '提交中...';
+
+      function doCreate(image) {
+        var links = [];
+        if (linksText) {
+          var linkLines = linksText.split('\n');
+          for (var i = 0; i < linkLines.length; i++) {
+            var parts = linkLines[i].split('|');
+            if (parts.length >= 2) {
+              links.push({ title: parts[0].trim(), url: parts.slice(1).join('|').trim() });
+            }
+          }
+        }
+
+        var list = {
+          username: username,
+          password: password,
+          title: title,
+          product_code: productCode,
+          category: category,
+          image: image || '',
+          items: items,
+          links: links
+        };
+
+        API.createList(list, function (err, res) {
+          btn.disabled = false;
+          btn.textContent = '提交清单';
+
+          if (err || !res.ok) {
+            var msg = '发布失败，请重试';
+            if (res && res.error) {
+              if (res.error.code === 'AUTH_FAILED') msg = '发布账号或密码错误';
+              else if (res.error.code === 'ACCOUNT_DISABLED') msg = '该账号已被禁用，请联系管理员';
+              else msg = res.error.message;
+            }
+            Common.showAlert(msg, 'error');
+            return;
+          }
+          document.getElementById('postForm').style.display = 'none';
+          var successDiv = document.getElementById('postSuccess');
+          successDiv.style.display = 'block';
+          successDiv.innerHTML =
+            '<p style="font-size:24px;color:#006600;">✓</p>' +
+            '<p>清单发布成功！</p>' +
+            '<p>感谢你的分享，清单已发布到首页。</p>' +
+            '<p style="margin-top:15px;"><a href="index.html">返回首页</a> | <a href="lt-post.html" onclick="location.reload();return false;">继续发布</a></p>';
+        });
+      }
+
+      if (imageFile) {
+        API.uploadImage(imageFile, function (err, res) {
+          if (err || !res.ok) {
+            Common.showAlert('图片上传失败，请重试或使用图片链接', 'error');
+            btn.disabled = false;
+            btn.textContent = '提交清单';
+            return;
+          }
+          doCreate(res.data.url);
+        });
+      } else {
+        doCreate(imageUrl);
+      }
+    }
+  </script>
+</body>
+</html>

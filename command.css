@@ -1,0 +1,194 @@
+/* ============================================================
+   发布清单总站 - 全局样式表
+   配色：棕色系（#996633 / #663300）+ 米黄色底色（#FFF8E7）
+   字体：兼容中/日文（MS PGothic, 宋体）
+   ============================================================ */
+
+/* ---- 全局重置 ---- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 15px; background-color: #FFE6B4;
+  font-family: 'MS PGothic', 'ＭＳ Ｐゴシック', 'SimSun', '宋体', serif;
+  color: #333; min-height: 100vh;
+}
+
+/* ---- 链接样式 ---- */
+a { color: #003399; text-decoration: underline; }
+a:hover { color: #cc0000; }
+a:visited { color: #551a8b; }
+
+/* ---- 页面容器 ---- */
+#container { width: 780px; max-width: 100%; padding: 0 10px; }
+
+/* ---- 站点头部：站点名称 + 简介 + 导航菜单 ---- */
+#web-name { text-align: left; padding: 20px 0 5px 0; }
+#web-name p { font-size: 28px; font-weight: bold; color: #663300; letter-spacing: 4px; }
+#web-intro { text-align: left; padding: 5px 0 15px 0; }
+#web-intro p { font-size: 13px; color: #666; }
+#menu {
+  display: flex; justify-content: center;
+  border-top: 2px solid #996633; border-bottom: 2px solid #996633;
+  margin: 5px 0 15px 0; background-color: #FFD699;
+}
+#menu table { border-collapse: collapse; }
+#menu table td { padding: 8px 30px; text-align: center; }
+#menu table td a { font-size: 14px; font-weight: bold; color: #663300; text-decoration: none; white-space: nowrap; }
+#menu table td a:hover { color: #cc3300; text-decoration: underline; }
+
+/* ---- 内容区 ---- */
+#content { min-height: 400px; padding-bottom: 20px; }
+
+/* ---- 页面标题/副标题 ---- */
+.page-title { font-size: 20px; font-weight: bold; color: #663300; border-bottom: 2px solid #996633; padding: 10px 0 5px 0; margin-bottom: 15px; }
+.page-subtitle { font-size: 13px; color: #666; margin-bottom: 15px; }
+.section-title { font-size: 16px; font-weight: bold; color: #663300; padding: 8px 0; margin: 10px 0; }
+
+/* ---- 前台清单展示表格 ---- */
+.info-Table { border: 1px solid #996633; border-collapse: collapse; margin: 10px 0; width: 100%; background-color: #FFF8E7; }
+.info-TR { border: 1px solid #996633; vertical-align: top; }
+.info-Table td { padding: 8px; border: 1px solid #996633; }
+#PictureSide { width: 180px; text-align: center; }
+#PictureSide img { display: block; margin: 0 auto 8px auto; border: 1px solid #ccc; }
+#PictureSide #infoLink { font-size: 12px; }
+#PictureSide #infoLink a { font-size: 12px; }
+#infoSpan p { margin: 3px 0; line-height: 1.4; font-size: 13px; }
+#infoSpan { font-size: 13px; display: block; }
+#infoText { width: 100%; height: 100px; padding: 8px; box-sizing: border-box; resize: none; overflow: hidden; outline: none; font-family: inherit; font-size: 13px; line-height: 1.4; background-color: #F5F0E0; border: 1px solid #ccc; color: #333; margin-top: 5px; }
+
+/* ---- 分类页样式 ---- */
+.category-list { list-style: none; padding: 0; }
+.category-list li { padding: 8px 12px; border-bottom: 1px dotted #ccc; font-size: 14px; }
+.category-list li a { font-size: 14px; font-weight: bold; }
+.category-list li span { color: #999; font-size: 12px; }
+
+/* ---- 搜索页样式 ---- */
+.search-box { margin: 15px 0; text-align: center; }
+.search-box input[type="text"] { width: 300px; padding: 5px 8px; font-size: 14px; border: 1px solid #996633; background-color: #FFFDF5; font-family: inherit; }
+.search-box button { padding: 5px 15px; font-size: 14px; background-color: #FFD699; border: 1px solid #996633; color: #663300; cursor: pointer; font-family: inherit; }
+.search-box button:hover { background-color: #FFC066; }
+.search-result { padding: 8px 0; }
+.search-result-none { text-align: center; color: #999; padding: 30px 0; font-size: 14px; }
+
+/* ---- 发布页表单 ---- */
+.post-form { background-color: #FFF8E7; border: 1px solid #996633; padding: 15px; margin: 10px 0; }
+.post-form table { width: 100%; border-collapse: collapse; }
+.post-form td { padding: 6px 8px; vertical-align: top; }
+.post-form td.label { width: 100px; font-weight: bold; text-align: right; font-size: 13px; color: #663300; }
+.post-form input, .post-form select, .post-form textarea { width: 100%; padding: 5px 8px; font-size: 13px; border: 1px solid #996633; background-color: #FFFDF5; font-family: inherit; color: #333; }
+.post-form textarea { resize: vertical; }
+.post-form button { padding: 6px 25px; font-size: 14px; background-color: #FFD699; border: 1px solid #996633; color: #663300; cursor: pointer; font-family: inherit; font-weight: bold; }
+.post-form button:hover { background-color: #FFC066; }
+.post-form .form-note { font-size: 12px; color: #999; margin-top: 5px; }
+.post-success { text-align: center; padding: 40px 20px; background-color: #FFF8E7; border: 1px solid #996633; margin: 10px 0; }
+.post-success p { font-size: 16px; color: #663300; margin: 10px 0; }
+
+/* ---- 留言板 ---- */
+.bbs-post { background-color: #FFF8E7; border: 1px solid #996633; padding: 15px; margin: 10px 0; }
+.bbs-post table { width: 100%; border-collapse: collapse; }
+.bbs-post td { padding: 6px 8px; vertical-align: top; }
+.bbs-post td.label { width: 80px; font-weight: bold; text-align: right; font-size: 13px; color: #663300; }
+.bbs-post input, .bbs-post textarea { width: 100%; padding: 5px 8px; font-size: 13px; border: 1px solid #996633; background-color: #FFFDF5; font-family: inherit; color: #333; }
+.bbs-post textarea { resize: vertical; }
+.bbs-post button { padding: 6px 25px; font-size: 14px; background-color: #FFD699; border: 1px solid #996633; color: #663300; cursor: pointer; font-family: inherit; font-weight: bold; }
+.bbs-post button:hover { background-color: #FFC066; }
+
+/* ---- 留言条目 ---- */
+.message-item { border: 1px solid #996633; margin: 10px 0; background-color: #FFF8E7; }
+.message-header { background-color: #FFD699; padding: 6px 10px; border-bottom: 1px solid #996633; font-size: 13px; color: #663300; }
+.message-header .msg-name { font-weight: bold; }
+.message-header .msg-date { float: right; color: #999; font-size: 12px; }
+.message-body { padding: 10px; font-size: 14px; line-height: 1.5; }
+.message-pending { color: #cc6600; font-size: 11px; margin-left: 10px; }
+
+/* ---- 管理员回复 ---- */
+.message-reply { margin: 10px 0 0 20px; padding: 10px; background-color: #F0E8D8; border-left: 3px solid #996633; }
+.reply-label { font-size: 12px; color: #663300; font-weight: bold; }
+.reply-text { font-size: 13px; margin-top: 4px; line-height: 1.5; }
+.reply-meta { font-size: 11px; color: #999; margin-top: 4px; }
+
+/* ---- 关于页 ---- */
+.about-content { background-color: #FFF8E7; border: 1px solid #996633; padding: 20px; margin: 10px 0; }
+.about-content p { margin: 8px 0; line-height: 1.6; font-size: 14px; }
+.about-content .about-section { margin: 15px 0; }
+.about-content .about-section h3 { font-size: 16px; color: #663300; border-left: 4px solid #996633; padding-left: 8px; margin-bottom: 8px; }
+
+/* ---- 页脚 ---- */
+#footer { text-align: center; padding: 15px 0; border-top: 1px solid #996633; margin-top: 20px; width: 100%; }
+#footer p { font-size: 12px; color: #999; }
+
+/* ============================================================
+   后台管理样式
+   ============================================================ */
+.admin-body { background-color: #F0E8D8; }
+
+/* ---- 管理后台登录页 ---- */
+.admin-login { width: 350px; margin: 100px auto; background-color: #FFF8E7; border: 2px solid #996633; padding: 25px; }
+.admin-login h2 { text-align: center; color: #663300; font-size: 20px; margin-bottom: 20px; }
+.admin-login table { width: 100%; }
+.admin-login td { padding: 5px; }
+.admin-login td.label { text-align: right; font-weight: bold; font-size: 13px; color: #663300; width: 80px; }
+.admin-login input { width: 100%; padding: 5px; border: 1px solid #996633; background-color: #FFFDF5; font-family: inherit; }
+.admin-login button { padding: 6px 25px; font-size: 14px; background-color: #FFD699; border: 1px solid #996633; color: #663300; cursor: pointer; font-family: inherit; font-weight: bold; }
+.admin-login button:hover { background-color: #FFC066; }
+.admin-login .error { color: #cc0000; text-align: center; font-size: 13px; margin: 5px 0; }
+
+/* ---- 管理后台顶部栏 ---- */
+.admin-header { background-color: #663300; color: #FFE6B4; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+.admin-header h1 { font-size: 18px; }
+.admin-header a { color: #FFE6B4; font-size: 13px; }
+
+/* ---- 管理后台导航标签 ---- */
+.admin-nav { background-color: #FFD699; border-bottom: 2px solid #996633; padding: 0; }
+.admin-nav table { width: 100%; border-collapse: collapse; }
+.admin-nav td { padding: 8px 20px; text-align: center; border-right: 1px solid #996633; }
+.admin-nav td a { font-size: 14px; font-weight: bold; color: #663300; text-decoration: none; }
+.admin-nav td a:hover { text-decoration: underline; }
+.admin-nav td.active { background-color: #FFC066; }
+
+/* ---- 管理后台内容区 ---- */
+.admin-content { width: 780px; max-width: 100%; margin: 0 auto; padding: 15px 10px; }
+.admin-toolbar { margin: 10px 0; text-align: right; }
+.admin-toolbar button { padding: 5px 15px; font-size: 13px; background-color: #FFD699; border: 1px solid #996633; color: #663300; cursor: pointer; font-family: inherit; }
+.admin-toolbar button:hover { background-color: #FFC066; }
+
+/* ---- 管理后台数据表格 ---- */
+.admin-table { width: 100%; border-collapse: collapse; margin: 10px 0; background-color: #FFF8E7; border: 1px solid #996633; }
+.admin-table th { background-color: #FFD699; padding: 8px 6px; border: 1px solid #996633; font-size: 13px; color: #663300; text-align: left; }
+.admin-table td { padding: 6px; border: 1px solid #996633; font-size: 13px; vertical-align: top; }
+.admin-table td.actions { white-space: nowrap; }
+.admin-table .actions a { font-size: 12px; margin: 0 2px; padding: 2px 8px; background-color: #FFD699; border: 1px solid #996633; color: #663300; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+.admin-table .actions a:hover { background-color: #FFC066; }
+
+/* ---- 状态标签颜色 ---- */
+.admin-status-pending { color: #cc6600; font-weight: bold; }
+.admin-status-approved { color: #006600; font-weight: bold; }
+.admin-status-rejected { color: #cc0000; font-weight: bold; }
+
+/* ---- 弹窗遮罩 + 弹窗框 ---- */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); z-index: 1000; }
+.modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; max-width: 95%; max-height: 85%; overflow-y: auto; background-color: #FFF8E7; border: 2px solid #996633; padding: 20px; }
+.modal-box h3 { color: #663300; font-size: 18px; border-bottom: 2px solid #996633; padding-bottom: 8px; margin-bottom: 15px; }
+.modal-box .form-row { margin: 8px 0; }
+.modal-box .form-row label { display: block; font-weight: bold; font-size: 13px; color: #663300; margin-bottom: 3px; }
+.modal-box .form-row input, .modal-box .form-row select, .modal-box .form-row textarea { width: 100%; padding: 5px 8px; font-size: 13px; border: 1px solid #996633; background-color: #FFFDF5; font-family: inherit; color: #333; }
+.modal-box .form-row textarea { resize: vertical; }
+.modal-buttons { text-align: center; margin-top: 15px; }
+.modal-buttons button { padding: 6px 25px; margin: 0 5px; font-size: 14px; background-color: #FFD699; border: 1px solid #996633; color: #663300; cursor: pointer; font-family: inherit; font-weight: bold; }
+.modal-buttons button:hover { background-color: #FFC066; }
+
+/* ---- 分页器 ---- */
+.pagination { text-align: center; margin: 15px 0; }
+.pagination a, .pagination span { display: inline-block; padding: 3px 10px; margin: 0 2px; font-size: 13px; border: 1px solid #996633; background-color: #FFF8E7; color: #663300; text-decoration: none; }
+.pagination a:hover { background-color: #FFD699; }
+.pagination .current { background-color: #FFD699; font-weight: bold; }
+
+/* ---- 空状态提示 ---- */
+.empty-state { text-align: center; padding: 40px 20px; color: #999; font-size: 14px; }
+
+/* ---- 临时提示条 ---- */
+.alert { padding: 8px 15px; margin: 10px 0; border: 1px solid #996633; font-size: 13px; }
+.alert-info { background-color: #FFF8E7; color: #663300; }
+.alert-success { background-color: #DFF0D8; color: #006600; border-color: #006600; }
+.alert-error { background-color: #F2DEDE; color: #cc0000; border-color: #cc0000; }

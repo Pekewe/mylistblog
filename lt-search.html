@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!--
+    发布清单总站 - 搜索页
+    功能：按关键词搜索已发布的清单
+    搜索范围：标题、分类、作者
+  -->
+  <title>搜索 - 发布清单总站</title>
+  <link rel="stylesheet" type="text/css" href="command.css">
+</head>
+<body id="body">
+  <div id="container">
+    <div id="header"></div>
+
+    <div id="content">
+      <div class="page-title">搜索清单</div>
+      <div class="page-subtitle">输入关键词搜索已发布的清单内容</div>
+
+      <div class="search-box">
+        <form onsubmit="doSearch();return false;">
+          <input type="text" id="searchInput" placeholder="输入关键词..." style="width:300px;">
+          <button type="submit">搜索</button>
+        </form>
+        <div style="margin-top:5px;font-size:12px;color:#999;">
+          热门搜索：
+          <a href="javascript:void(0)" onclick="quickSearch('\u97F3\u6A02')" class="tag">音樂</a>
+          <a href="javascript:void(0)" onclick="quickSearch('\u52D5\u753B')" class="tag">廣播劇</a>
+          <a href="javascript:void(0)" onclick="quickSearch('\u904A\u6232')" class="tag">同人音樂</a>
+          <a href="javascript:void(0)" onclick="quickSearch('\u63A8\u85A6')" class="tag">影片</a>
+        </div>
+      </div>
+
+      <div id="searchResults"></div>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      Common.init(function () {
+        var urlKeyword = Common.getUrlParam('q');
+        if (urlKeyword) {
+          document.getElementById('searchInput').value = urlKeyword;
+          doSearch();
+        }
+      });
+    });
+
+    function doSearch() {
+      var keyword = document.getElementById('searchInput').value.trim();
+      if (!keyword) {
+        document.getElementById('searchResults').innerHTML =
+          '<div class="empty-state">请输入搜索关键词。</div>';
+        return;
+      }
+
+      var container = document.getElementById('searchResults');
+      container.innerHTML = '<div class="loading">搜索中...</div>';
+
+      API.searchLists(keyword, 1, 10, function (err, res) {
+        if (err || !res.ok) {
+          container.innerHTML = '<div class="empty-state">搜索请求失败，请重试。</div>';
+          return;
+        }
+        var results = res.data;
+        if (results.length === 0) {
+          container.innerHTML = '<div class="search-result-none">未找到与 "' + Common.escapeHtml(keyword) + '" 相关的清单。</div>';
+        } else {
+          var html = '<div class="search-result">找到 ' + res.meta.total + ' 个与 "' + Common.escapeHtml(keyword) + '" 相关的清单：</div>';
+          for (var i = 0; i < results.length; i++) {
+            html += Common.renderListTable(results[i]);
+          }
+          container.innerHTML = html;
+        }
+      });
+    }
+
+    function quickSearch(keyword) {
+      document.getElementById('searchInput').value = keyword;
+      doSearch();
+    }
+  </script>
+</body>
+</html>
